@@ -1,21 +1,55 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        maven { url 'https://nexus.projectcroatia.cloud/repository/alpha/' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath "uk.co.deloitte.alpha.build:AlphaCommonPlugin:$alphaCommonLibVersion"
+        classpath "io.qameta.allure.gradle.allure:allure-plugin:2.11.2"
+    }
+}
+
 plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("io.micronaut.application") version "3.7.9"
+    id "org.sonarqube" version "3.4.0.2513"
 }
-
+apply plugin: 'AlphaCommonPlugin'
 version = "0.1"
 group = "com.croatia"
 
 repositories {
+    maven { url 'https://nexus.projectcroatia.cloud/repository/alpha/' }
     mavenCentral()
 }
 
 dependencies {
+    implementation "uk.co.deloitte.alpha.error:alpha-error-handling-library:$alphaErrorLibVersion"
+    implementation "uk.co.deloitte.alpha.http:alpha-http-mn-library:$alphaHttpLibVersion"
+    implementation("uk.co.deloitte.alpha.kafka:alpha-kafka-library:$alphaKafkaLibVersion")
+
     annotationProcessor("io.micronaut:micronaut-http-validation")
     implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut:micronaut-jackson-databind")
     implementation("jakarta.annotation:jakarta.annotation-api")
     runtimeOnly("ch.qos.logback:logback-classic")
+
+    testImplementation "uk.co.deloitte.alpha.test:alpha-test-library:$alphaTestLibVersion"
+    testImplementation group: 'com.google.guava', name: 'guava', version: '30.1.1-jre'
+    testImplementation("org.testcontainers:oracle-xe")
+    testImplementation 'com.h2database:h2'
+    testImplementation('com.github.tomakehurst:wiremock-jre8:2.35.0') {
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+    testImplementation('org.slf4j:slf4j-api') {
+        version {
+            strictly '1.7.36'
+        }
+    }
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.4.0'
+
+    compileOnly("org.graalvm.nativeimage:svm")
 }
 
 application {
@@ -25,6 +59,9 @@ java {
     sourceCompatibility = JavaVersion.toVersion("17")
     targetCompatibility = JavaVersion.toVersion("17")
 }
+test {
+    useJUnitPlatform()
+}
 
 graalvmNative.toolchainDetection = false
 micronaut {
@@ -33,6 +70,16 @@ micronaut {
     processing {
         incremental(true)
         annotations("com.croatia.*")
+    }
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "poc-croatia-kafka-exception-handler"
+        property "sonar.projectName", "poc-croatia-kafka-exception-handler"
+        property "sonar.sources", "./src/main"
+        property "sonar.tests", "./src/test"
+        property "sonar.exclusions", "**/model/**,**/*Application.java"
     }
 }
 

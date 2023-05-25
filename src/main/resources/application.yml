@@ -1,7 +1,33 @@
 micronaut:
   application:
     name: croatiaPocKafkaLibrary
+  router:
+    static-resources:
+      swagger:
+        paths: classpath:META-INF/swagger
+        mapping: /swagger/**
+      swagger-ui:
+        paths: classpath:META-INF/swagger/views/swagger-ui
+        mapping: /swagger-ui/**
+      design:
+        paths: "classpath:design"
+        mapping: /design/**
+  openapi:
+    views:
+      spec: "swagger-ui.enabled=true,swagger-ui.theme=flattop"
 netty:
   default:
     allocator:
       max-order: 3
+
+datasources:
+  default:
+    url: jdbc:mysql://localhost:3306/orderdb
+    username: orderdb
+    password: test
+    driverClassName: "com.mysql.cj.jdbc.Driver"
+    dialect: MYSQL
+
+kafka:
+  bootstrap:
+    servers: localhost:9092
